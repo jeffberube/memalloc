@@ -1,0 +1,27 @@
+@Author: 	Jeff Berube
+@ID:		4356171
+@Title:		Memory Allocator (Assignment #3 - CS3790)
+	
+
+@Description:	This program simulates memory allocation within a kernel. 
+
+
+@Compile:	To compile, type 
+
+		make 
+
+		inside program directory.
+
+
+@How to use:	To use, type
+
+		./memalloc
+
+		inside program directory.
+
+
+@Git:		To clone into directory, type
+
+		git clone https://github.com/jeffberube/memalloc.git
+
+		inside directory.
