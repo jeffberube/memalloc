@@ -1,8 +1,8 @@
 /*
- * @Author:	Jeff Berube
- * @Title:	memalloc.c
+ * @Author:		Jeff Berube
+ * @Title:		memalloc.c
  *
- * @Description:	Simulates memory allocation inside a kernel.
+ * @Description:	Memory allocation and freeing functions.	
  *
  */
 
@@ -13,6 +13,7 @@
 
 void init_memory_arena() {
 
+	/* Initialize lists */
 	init_free_list();
 	init_alloc_list();	
 
@@ -20,13 +21,12 @@ void init_memory_arena() {
 
 void generate_memory_request(int current_time, allocScheme scheme) {
 
-	/* Seed random number generator */
-	srand(time(NULL));
-
 	int size = (rand() % (MAX_SIZE - MIN_SIZE)) + MIN_SIZE;
 	int lease = (rand() % (MAX_LEASE - MIN_LEASE)) + MIN_LEASE;
 
-	request_memory(size, lease, scheme);
+	int success = request_memory(size, lease + current_time, scheme);
+
+	update_request_stats(size, lease, success);		
 
 }
 
@@ -46,11 +46,11 @@ int request_memory(int size, int lease, allocScheme scheme) {
 	/* If block found, split and create new node */
 	if (block) {
 
-			allocNode *node = create_new_alloc_node(block->hole->start, size, lease);
-			insert_alloc_node_in_list(node);
+		allocNode *node = create_alloc_node(block->hole.start, size, lease);
+		insert_alloc_node_in_list(node);
 
-			block->hole->start += size;
-	
+		block->hole.start += size;
+		block->hole.length -= size;	
 	}
 
 	/* Returns 1 if request was fulfilled, 0 otherwise */
@@ -60,7 +60,13 @@ int request_memory(int size, int lease, allocScheme scheme) {
 
 void release_memory(allocNode *node) {
 
+	freeNode *block = create_free_node(node->allocated.start, 
+										node->allocated.length);
+	insert_free_node_in_list(block);
 
+	remove_alloc_node_from_list(node);
+	
+	destroy_alloc_node(node);
 
 }
 
@@ -71,7 +77,7 @@ freeNode *find_free_node(int size, allocScheme scheme) {
 
 	if (scheme == FIRST_FIT) {
 		
-		while (p->next && p->next->hole->length < size) p = p->next;
+		while (p->next && p->next->hole.length < size) p = p->next;
 
 		block = p->next;
 
@@ -80,13 +86,13 @@ freeNode *find_free_node(int size, allocScheme scheme) {
 		/* Iterate through whole list */	
 		while (p->next) {
 		
-			if (p->next->hole->length >= size) {
+			if (p->next->hole.length >= size) {
 			
 				if (!block) 
 					block = p->next;
 				
-				else if ((scheme == BEST_FIT && p->next->hole->length < block->hole->length)
-						|| (scheme == WORST_FIT && p->next->hole->length > block->hole->length))
+				else if ((scheme == BEST_FIT && p->next->hole.length < block->hole.length)
+						|| (scheme == WORST_FIT && p->next->hole.length > block->hole.length))
 					block = p->next;
 
 			}
@@ -101,7 +107,42 @@ freeNode *find_free_node(int size, allocScheme scheme) {
 
 }
 
+void merge_free_list() {
+
+	freeNode *p = freeList;
+
+	while (p->next && p->next->next) {
+	
+		/* If two holes are adjacent */
+		if (p->next->next->hole.start == p->next->hole.start + p->next->hole.length) {
+			
+			/* Merge the holes then restart from start of list */
+			merge_free_nodes(p->next, p->next->next);
+			p = freeList;
+
+		} else p = p->next;
+
+	}
+
+}
+
 void clean_expired_leases(int current_time) {
 
+	allocNode *p = allocList;
+
+	if (p->next && p->next->leaseExpiry <= current_time) {
+
+		while (p->next && p->next->leaseExpiry <= current_time) {
+
+			allocNode *tmp = p;
+			p = p->next;
+
+			release_memory(tmp);
+		
+		}
+
+		allocList = p;
+
+	}
 
 }

@@ -11,26 +11,26 @@
 #define __nodes_h__
 
 #include <stdio.h>
-#include <unistd.h>
+#include <malloc.h>
 
 typedef struct freeNode freeNode;
 typedef struct allocNode allocNode;
 typedef	struct range range;
+
+struct range {
+	int start;
+	int length;
+};
 
 struct freeNode {
 	range hole;
 	freeNode *next;
 };
 
-struct allocNode {
+struct allocNode{
 	range allocated;
 	allocNode *next;
 	int leaseExpiry;
-};
-
-struct range {
-	int start;
-	int length;
 };
 
 freeNode *freeList;
