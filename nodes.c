@@ -8,6 +8,20 @@
 
 #include "nodes.h"
 
+void init_free_list() {
+
+	/* Create sentinel node */
+	freeList = create_free_node(0, 1000);
+
+}
+
+void init_alloc_list() {
+
+	/* Create sentinel node */
+	allocList = create_alloc_node(0, 0, 0);
+
+}
+
 freeNode *create_free_node(int start, int length) {
 
 	freeNode *node = malloc(sizeof freeNode);

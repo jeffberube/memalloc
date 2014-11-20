@@ -10,14 +10,20 @@
 
 #include "nodes.h"
 
-/* Simulation parameters */
+/* Memory space  parameters */
 #define MIN_LEASE 	40
 #define MAX_LEASE 	70
 #define MIN_SIZE	50
 #define MAX_SIZE	350
-#define TIME_LIMIT	1000
 #define MEMORY_SIZE	1000
-#define REQUEST_INTERVAL	20
 
-void request_memory(int);
-void clean_expired_leases(int);
+/* Allocation schemes */
+typedef enum {BEST_FIT, WORST_FIT, FIRST_FIT} allocScheme;
+
+/* Prototypes */
+void init_memory_arena();
+void generate_memory_request(int current_time, allocScheme scheme);
+void request_memory(int size, int lease, allocScheme scheme);
+void release_memory(allocNode *node);
+freeNode *find_free_node(int size, allocScheme scheme);
+void clean_expired_leases(int current_time);
