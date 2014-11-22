@@ -13,7 +13,6 @@
 
 void init_memory_arena() {
 
-	/* Initialize lists */
 	init_free_list();
 	init_alloc_list();	
 
@@ -50,10 +49,12 @@ int request_memory(int size, int lease, allocScheme scheme) {
 		insert_alloc_node_in_list(node);
 
 		block->hole.start += size;
-		block->hole.length -= size;	
+		block->hole.length -= size;
+
 	}
 
 	/* Returns 1 if request was fulfilled, 0 otherwise */
+
 	return block ? 1 : 0;
 
 }
@@ -102,7 +103,7 @@ freeNode *find_free_node(int size, allocScheme scheme) {
 		}
 
 	} 
-	
+
 	return block;
 
 }
@@ -126,13 +127,50 @@ void merge_free_list() {
 
 }
 
-void clean_expired_leases(int current_time) {
+void sort_alloc_list_on_start() {
 
 	allocNode *p = allocList;
+	allocNode *q = allocList;
+	allocNode *tmp, *tmp_prev;
 
-	if (p->next && p->next->leaseExpiry <= current_time) {
+	/* If there's more than one element in the alloc list, sort */
+	if (p->next && p->next->next) {
 
-		while (p->next && p->next->leaseExpiry <= current_time) {
+		while (q->next) {
+			
+			p = q->next;
+			tmp = p;
+			tmp_prev = q;
+
+			while (p->next) {
+				
+				if (p->next->allocated.start < tmp->allocated.start) {
+					tmp = p->next;
+					tmp_prev = p;
+				}
+				p = p->next;
+
+			}
+
+			tmp_prev->next = tmp->next;
+			tmp->next = q->next;
+			q->next = tmp;
+
+			q = q->next;
+
+		}
+
+	}
+
+}
+
+void clean_expired_leases(int current_time) {
+
+	allocNode *p = allocList->next;
+
+	if (p && p->leaseExpiry <= current_time) {
+
+		while (p && p->leaseExpiry <= current_time) {
 
 			allocNode *tmp = p;
 			p = p->next;
@@ -141,7 +179,7 @@ void clean_expired_leases(int current_time) {
 		
 		}
 
-		allocList = p;
+		allocList->next = p;
 
 	}
 

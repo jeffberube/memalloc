@@ -82,4 +82,51 @@ void dump_stats(int cycles, allocScheme scheme) {
 	printf("Shortest Lease: %d\n", stats.shortestLease);
 	printf("Longest Lease: %d\n\n", stats.longestLease);
 
+	printf("Total Merges: %d\n\n", stats.totalMerges);
+
+	merge_free_list();
+	sort_alloc_list_on_start();
+
+	freeNode *f = freeList->next;
+	allocNode *a = allocList->next;
+
+	while (f || a) {
+
+
+		if (f && a) {
+		
+			if (f->hole.start < a->allocated.start) {
+
+				printf("     FREE| \tStart: %3d \tLength: %3d\n", 
+						f->hole.start, f->hole.length);
+				f = f->next;
+
+			} else {
+			
+				printf("ALLOCATED| \tStart: %3d \tLength: %3d \tExpiry: %d\n",
+						a->allocated.start, a->allocated.length,
+						a->leaseExpiry);
+				a = a->next;
+
+			}
+
+		} else if (f) {
+		
+			printf("     FREE| \tStart: %3d \tLength: %3d\n", 
+					f->hole.start, f->hole.length);
+			f = f->next;
+
+		} else {
+		
+			printf("ALLOCATED| \tStart: %3d \tLength: %3d \tExpiry: %d\n",
+					a->allocated.start, a->allocated.length,
+						a->leaseExpiry);
+			a = a->next;
+
+		}		
+	
+	}
+
+	printf("\n");
+
 }

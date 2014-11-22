@@ -8,21 +8,23 @@
 
 @Compile:	To compile, type 
 
-			make 
+		make 
 
-			inside program directory.
+		inside program directory.
 
 
 @How to use:	To use, type
 
-				./memalloc <SCHEME (Optional. Default = FIRST_FIT)> 
+		./memalloc <SCHEME> 
 
-				inside program directory where SCHEME is the name of the
-				memory allocation scheme to use for the simulation.
+		inside program directory where SCHEME is the name of the
+		memory allocation scheme to use for the simulation.
+		
+		<SCHEME>	Optional. Defaults to BEST_FIT.
 				Acceptable values are FIRST_FIT, BEST_FIT, WORST_FIT.
 
 
-@Git:			To clone into directory, type
+@Git:		To clone into directory, type
 
 		git clone https://github.com/jeffberube/memalloc.git
 

@@ -7,6 +7,7 @@
  */
 
 #include "nodes.h"
+#include "stats.h"
 
 void init_free_list() {
 
@@ -46,7 +47,7 @@ void insert_free_node_in_list(freeNode *node) {
 
 	freeNode *p = freeList;
 	
-	while (p->next && node->hole.start < p->next->hole.start) p = p->next;	
+	while (p->next && node->hole.start >= p->next->hole.start) p = p->next;	
 		
 	node->next = p->next;
 	p->next = node;
@@ -65,20 +66,13 @@ void remove_free_node_from_list(freeNode *node) {
 
 void merge_free_nodes(freeNode *leftNode, freeNode *rightNode) {
 
-	int start = leftNode->hole.start;
-	int length = leftNode->hole.length + rightNode->hole.length;
-
-	printf("Bug here ...");
-	remove_free_node_from_list(leftNode);
-	destroy_free_node(leftNode);
+	leftNode->hole.length = leftNode->hole.length + rightNode->hole.length;
+	leftNode->next = rightNode->next;
 
 	remove_free_node_from_list(rightNode);
 	destroy_free_node(rightNode);
-	printf(" or here\n");
 
-	freeNode *merged = create_free_node(start, length);
-	insert_free_node_in_list(merged);
-
+	stats.totalMerges++;
 }
 
 allocNode *create_alloc_node(int start, int length, int expiry) {
